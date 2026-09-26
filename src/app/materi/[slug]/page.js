@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getCurrentUser } from '@/lib/auth'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, BookOpen, Lightbulb, Target, Eye, Headphones } from 'lucide-react'
 
 export default function MateriDetail() {
@@ -13,10 +14,18 @@ export default function MateriDetail() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const audioRef = useRef(null)
 
   useEffect(() => {
-    async function fetchMaterial() {
+    async function fetchData() {
+      // Cek role user (admin atau siswa)
+      const current = await getCurrentUser()
+      if (current && current.profile?.role === 'admin') {
+        setIsAdmin(true)
+      }
+
+      // Ambil materi
       const { data, error } = await supabase
         .from('materials')
         .select('*, categories(name, icon, color)')
@@ -29,7 +38,7 @@ export default function MateriDetail() {
       }
       setLoading(false)
     }
-    fetchMaterial()
+    fetchData()
   }, [params.slug])
 
   const toggleAudio = () => {
@@ -100,6 +109,23 @@ export default function MateriDetail() {
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null
   }
 
+  // ===== TOMBOL KEMBALI PINTAR =====
+  // Pakai router.back() → otomatis balik ke halaman sebelumnya
+  // Fallback (kalau user buka link langsung, tidak ada history):
+  //   - Admin → /admin/materi
+  //   - Siswa  → / (Home siswa)
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else {
+      if (isAdmin) {
+        router.push('/admin/materi')
+      } else {
+        router.push('/')
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50">
@@ -118,10 +144,11 @@ export default function MateriDetail() {
         <h1 className="text-2xl font-black text-gray-800 mb-2">Materi Tidak Ditemukan</h1>
         <p className="text-gray-500 mb-6 text-center">Materi yang kamu cari belum ada atau sudah dihapus.</p>
         <button
-          onClick={() => router.push('/')}
-          className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-black px-6 py-3 rounded-2xl shadow-lg hover:scale-105 transition-transform"
+          onClick={handleBack}
+          className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-black px-6 py-3 rounded-2xl shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
         >
-          ← Kembali ke Home
+          <ArrowLeft size={20} />
+          Kembali
         </button>
       </div>
     )
@@ -136,11 +163,11 @@ export default function MateriDetail() {
       <header className="bg-white/90 backdrop-blur-md border-b-4 sticky top-0 z-50" style={{borderColor: categoryColor + '40'}}>
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
-            onClick={() => router.push('/')}
+            onClick={handleBack}
             className="bg-gray-100 hover:bg-gray-200 p-2.5 rounded-2xl transition-colors flex items-center gap-1.5 font-bold text-gray-700"
           >
             <ArrowLeft size={20} />
-            <span className="hidden md:inline">Kembali</span>
+            <span>Kembali</span>
           </button>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-2xl">{material.categories?.icon}</span>
@@ -320,12 +347,12 @@ export default function MateriDetail() {
             <h3 className="text-2xl font-black mb-2">Sudah Paham?</h3>
             <p className="text-pink-100 font-medium mb-6">Uji pemahamanmu dengan kuis seru!</p>
             <button
-  onClick={() => router.push(`/materi/${params.slug}/kuis`)}
-  className="bg-white text-pink-500 font-black px-8 py-4 rounded-2xl shadow-xl hover:scale-110 transition-transform text-lg inline-flex items-center gap-2"
->
-  <Target size={22} />
-  MULAI KUIS
-</button>
+              onClick={() => router.push(`/materi/${params.slug}/kuis`)}
+              className="bg-white text-pink-500 font-black px-8 py-4 rounded-2xl shadow-xl hover:scale-110 transition-transform text-lg inline-flex items-center gap-2"
+            >
+              <Target size={22} />
+              MULAI KUIS
+            </button>
           </div>
         </section>
 

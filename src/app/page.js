@@ -4,15 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getCurrentUser, logout } from '@/lib/auth'
-import { Play, Target, Sparkles, Trophy, ArrowRight, Star, Heart, Zap, LogOut, User, BarChart3 } from 'lucide-react'
+import { Play, Target, Sparkles, Trophy, ArrowRight, Star, Heart, Zap, LogOut, User, BarChart3, X, LayoutDashboard } from 'lucide-react'
 
 export default function Home() {
   const router = useRouter()
   const [categories, setCategories] = useState([])
   const [materials, setMaterials] = useState([])
+  const [allMaterials, setAllMaterials] = useState([])
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
   useEffect(() => {
     async function fetchData() {
@@ -34,11 +36,30 @@ export default function Home() {
         .order('order_index')
 
       setCategories(cats || [])
+      setAllMaterials(mats || [])
       setMaterials(mats || [])
       setLoading(false)
     }
     fetchData()
   }, [])
+
+  const handleCategoryClick = (category) => {
+    if (selectedCategory?.id === category.id) {
+      setSelectedCategory(null)
+      setMaterials(allMaterials)
+    } else {
+      setSelectedCategory(category)
+      setMaterials(allMaterials.filter((m) => m.category_id === category.id))
+    }
+    setTimeout(() => {
+      document.getElementById('misi-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 100)
+  }
+
+  const clearFilter = () => {
+    setSelectedCategory(null)
+    setMaterials(allMaterials)
+  }
 
   const handleLogout = async () => {
     await logout()
@@ -46,6 +67,8 @@ export default function Home() {
     setProfile(null)
     router.refresh()
   }
+
+  const isAdmin = profile?.role === 'admin'
 
   if (loading) {
     return (
@@ -61,6 +84,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 via-orange-50 to-pink-50">
 
+      {/* HEADER */}
       <header className="bg-white/90 backdrop-blur-md border-b-4 border-yellow-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -75,19 +99,33 @@ export default function Home() {
 
           {user ? (
             <div className="flex items-center gap-2">
+              {/* TOMBOL ADMIN — hanya untuk admin */}
+              {isAdmin && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-sm font-black px-3 sm:px-4 py-2.5 rounded-2xl shadow-lg shadow-purple-200 hover:scale-105 transition-transform flex items-center gap-1.5"
+                  title="Ke Dashboard Admin"
+                >
+                  <LayoutDashboard size={16} />
+                  <span className="hidden md:inline">Admin</span>
+                </button>
+              )}
+
               <button
                 onClick={() => router.push('/progress')}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-black px-4 py-2.5 rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 transition-transform flex items-center gap-1.5"
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-black px-3 sm:px-4 py-2.5 rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 transition-transform flex items-center gap-1.5"
               >
                 <BarChart3 size={16} />
                 <span className="hidden md:inline">Progress</span>
               </button>
-              <div className="bg-yellow-100 border-2 border-yellow-300 text-yellow-800 text-sm font-black px-3 py-2 rounded-2xl flex items-center gap-1.5">
+
+              <div className="bg-yellow-100 border-2 border-yellow-300 text-yellow-800 text-sm font-black px-2 sm:px-3 py-2 rounded-2xl flex items-center gap-1.5">
                 <User size={14} />
                 <span className="hidden sm:inline max-w-[100px] truncate">
-                  {profile?.full_name || 'Siswa'}
+                  {profile?.full_name || (isAdmin ? 'Admin' : 'Siswa')}
                 </span>
               </div>
+
               <button
                 onClick={handleLogout}
                 className="bg-red-100 hover:bg-red-200 text-red-600 p-2.5 rounded-2xl transition-colors"
@@ -108,6 +146,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-200/40 rounded-full blur-3xl -mr-32 -mt-32"></div>
@@ -174,6 +213,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* STATISTIK */}
       <section className="max-w-6xl mx-auto px-4 -mt-6 relative z-10">
         <div className="grid grid-cols-3 gap-3 md:gap-4">
           <div className="bg-white rounded-3xl p-5 md:p-6 shadow-xl shadow-yellow-100 border-4 border-yellow-200 text-center">
@@ -183,7 +223,7 @@ export default function Home() {
           </div>
           <div className="bg-white rounded-3xl p-5 md:p-6 shadow-xl shadow-pink-100 border-4 border-pink-200 text-center">
             <div className="text-4xl md:text-5xl mb-2">🎯</div>
-            <div className="text-3xl md:text-4xl font-black text-pink-500">{materials.length}</div>
+            <div className="text-3xl md:text-4xl font-black text-pink-500">{allMaterials.length}</div>
             <div className="text-xs md:text-sm text-gray-500 font-bold">MISI</div>
           </div>
           <div className="bg-white rounded-3xl p-5 md:p-6 shadow-xl shadow-green-100 border-4 border-green-200 text-center">
@@ -194,6 +234,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* PETA BELAJAR */}
       <section id="peta-belajar" className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-5 py-2 rounded-full text-sm font-black mb-3 shadow-lg">
@@ -201,87 +242,144 @@ export default function Home() {
             <span>PETA BELAJAR</span>
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-gray-800">Pilih Petualanganmu!</h3>
-          <p className="text-gray-500 mt-2 font-medium">Klik peta untuk mulai menjelajah</p>
+          <p className="text-gray-500 mt-2 font-medium">Klik peta untuk filter materi di bawah 👇</p>
         </div>
 
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => router.push(`/?kategori=${cat.slug}`)}
-              className="group relative bg-white rounded-3xl p-4 md:p-5 text-center shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border-4 border-transparent overflow-hidden"
-              style={{ borderColor: cat.color + '40' }}
-            >
-              <div
-                className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity"
-                style={{ backgroundColor: cat.color }}
-              ></div>
-              <div className="relative">
-                <div className="text-4xl md:text-5xl mb-3 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-500">
-                  {cat.icon}
+          {categories.map((cat) => {
+            const isActive = selectedCategory?.id === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat)}
+                className={`group relative rounded-3xl p-4 md:p-5 text-center shadow-xl transition-all duration-300 border-4 overflow-hidden ${
+                  isActive
+                    ? 'border-yellow-400 scale-105 ring-4 ring-yellow-300 shadow-2xl'
+                    : 'border-transparent hover:-translate-y-2'
+                }`}
+                style={{
+                  backgroundColor: isActive ? (cat.color + '30') : 'white',
+                }}
+              >
+                <div
+                  className={`absolute inset-0 transition-opacity ${isActive ? 'opacity-30' : 'opacity-10 group-hover:opacity-20'}`}
+                  style={{ backgroundColor: cat.color }}
+                ></div>
+                <div className="relative">
+                  <div className={`text-4xl md:text-5xl mb-3 transition-transform duration-500 ${isActive ? 'scale-125' : 'group-hover:scale-125 group-hover:rotate-12'}`}>
+                    {cat.icon}
+                  </div>
+                  <div className={`text-xs md:text-sm font-black leading-tight ${isActive ? 'text-gray-900' : 'text-gray-700'}`}>
+                    {cat.name}
+                  </div>
+                  {isActive && (
+                    <div className="mt-2 bg-yellow-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full inline-block">
+                      ✓ AKTIF
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs md:text-sm font-black text-gray-700 leading-tight">
-                  {cat.name}
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            )
+          })}
         </div>
+
+        {selectedCategory && (
+          <div className="mt-6 flex items-center justify-center">
+            <button
+              onClick={clearFilter}
+              className="bg-white border-2 border-gray-200 hover:border-red-300 text-gray-600 hover:text-red-500 font-black px-5 py-2.5 rounded-2xl transition-all flex items-center gap-2 shadow-md"
+            >
+              <X size={18} />
+              Hapus Filter: <span className="text-orange-500">{selectedCategory.icon} {selectedCategory.name}</span>
+            </button>
+          </div>
+        )}
       </section>
 
-      <section className="max-w-6xl mx-auto px-4 pb-12">
+      {/* MISI HARI INI */}
+      <section id="misi-section" className="max-w-6xl mx-auto px-4 pb-12 scroll-mt-24">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white px-5 py-2 rounded-full text-sm font-black mb-3 shadow-lg">
             <span>🎯</span>
-            <span>MISI HARI INI</span>
+            <span>{selectedCategory ? `MISI: ${selectedCategory.name.toUpperCase()}` : 'MISI HARI INI'}</span>
           </div>
-          <h3 className="text-2xl md:text-3xl font-black text-gray-800">Siap Bertualang?</h3>
+          <h3 className="text-2xl md:text-3xl font-black text-gray-800">
+            {selectedCategory ? `Materi ${selectedCategory.name}` : 'Siap Bertualang?'}
+          </h3>
+          {selectedCategory && (
+            <p className="text-gray-500 mt-2 font-medium">
+              {materials.length} materi ditemukan
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {materials.map((mat) => (
-            <button
-              key={mat.id}
-              onClick={() => router.push(`/materi/${mat.slug}`)}
-              className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 text-left border-4 border-yellow-100"
-            >
-              <div
-                className="h-48 relative flex items-center justify-center overflow-hidden"
-                style={{ backgroundColor: mat.categories?.color || '#FF8C42' }}
+        {materials.length === 0 ? (
+          <div className="bg-white rounded-3xl p-12 text-center shadow-xl border-4 border-yellow-100">
+            <div className="text-6xl mb-3">📭</div>
+            <h3 className="text-xl font-black text-gray-800 mb-2">
+              Belum ada materi
+            </h3>
+            <p className="text-gray-500 font-bold mb-6">
+              {selectedCategory
+                ? `Belum ada materi untuk kategori ${selectedCategory.name}`
+                : 'Materi akan segera hadir!'}
+            </p>
+            {selectedCategory && (
+              <button
+                onClick={clearFilter}
+                className="bg-gradient-to-r from-orange-400 to-pink-500 text-white font-black px-6 py-3 rounded-2xl shadow-lg hover:scale-105 transition-transform"
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <div className="absolute top-4 -left-4 text-6xl opacity-30">✨</div>
-                <div className="absolute bottom-4 -right-4 text-6xl opacity-30">⭐</div>
-                <div className="text-8xl group-hover:scale-125 transition-transform duration-500 relative z-10 drop-shadow-2xl">
-                  {mat.categories?.icon || '📖'}
+                Lihat Semua Materi
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {materials.map((mat) => (
+              <button
+                key={mat.id}
+                onClick={() => router.push(`/materi/${mat.slug}`)}
+                className="group bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 text-left border-4 border-yellow-100"
+              >
+                <div
+                  className="h-48 relative flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: mat.categories?.color || '#FF8C42' }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  <div className="absolute top-4 -left-4 text-6xl opacity-30">✨</div>
+                  <div className="absolute bottom-4 -right-4 text-6xl opacity-30">⭐</div>
+                  <div className="text-8xl group-hover:scale-125 transition-transform duration-500 relative z-10 drop-shadow-2xl">
+                    {mat.categories?.icon || '📖'}
+                  </div>
+                  <div className="absolute top-4 left-4 bg-white text-xs font-black px-3 py-1.5 rounded-full text-gray-700 shadow-lg">
+                    {mat.categories?.name}
+                  </div>
+                  <div className="absolute top-4 right-4 bg-yellow-400 text-xs font-black px-3 py-1.5 rounded-full text-white shadow-lg flex items-center gap-1">
+                    <Star size={12} className="fill-white" />
+                    MISI
+                  </div>
                 </div>
-                <div className="absolute top-4 left-4 bg-white text-xs font-black px-3 py-1.5 rounded-full text-gray-700 shadow-lg">
-                  {mat.categories?.name}
-                </div>
-                <div className="absolute top-4 right-4 bg-yellow-400 text-xs font-black px-3 py-1.5 rounded-full text-white shadow-lg flex items-center gap-1">
-                  <Star size={12} className="fill-white" />
-                  MISI
-                </div>
-              </div>
 
-              <div className="p-6">
-                <h4 className="font-black text-gray-800 text-lg mb-3 line-clamp-2 group-hover:text-orange-500 transition-colors">
-                  {mat.title}
-                </h4>
-                <p className="text-sm text-gray-500 line-clamp-2 mb-4 font-medium">
-                  {mat.excerpt}
-                </p>
+                <div className="p-6">
+                  <h4 className="font-black text-gray-800 text-lg mb-3 line-clamp-2 group-hover:text-orange-500 transition-colors">
+                    {mat.title}
+                  </h4>
+                  <p className="text-sm text-gray-500 line-clamp-2 mb-4 font-medium">
+                    {mat.excerpt}
+                  </p>
 
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black text-center py-3 rounded-2xl shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all flex items-center justify-center gap-2">
-                  <Play size={18} className="fill-white" />
-                  MULAI MISI
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black text-center py-3 rounded-2xl shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all flex items-center justify-center gap-2">
+                    <Play size={18} className="fill-white" />
+                    MULAI MISI
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
+      {/* PENCAPAIAN */}
       <section className="max-w-6xl mx-auto px-4 pb-12">
         <div className="bg-gradient-to-br from-yellow-300 via-orange-400 to-pink-400 rounded-3xl p-8 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 text-9xl opacity-20 -mt-6 -mr-6">🏆</div>
@@ -317,6 +415,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* KENAPA */}
       <section className="max-w-6xl mx-auto px-4 pb-12">
         <div className="text-center mb-8">
           <h3 className="text-2xl md:text-3xl font-black text-gray-800">
@@ -351,6 +450,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="bg-white border-t-4 border-yellow-200">
         <div className="max-w-6xl mx-auto px-4 py-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">

@@ -85,7 +85,6 @@ export default function AdminMateriPage() {
 
   return (
     <div>
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-black text-gray-800 mb-1">
@@ -104,7 +103,6 @@ export default function AdminMateriPage() {
         </Link>
       </div>
 
-      {/* SEARCH */}
       <div className="bg-white rounded-2xl shadow-md border-2 border-gray-100 p-4 mb-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -118,7 +116,6 @@ export default function AdminMateriPage() {
         </div>
       </div>
 
-      {/* LIST MATERI */}
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-md border-2 border-gray-100 p-12 text-center">
           <div className="text-6xl mb-3">📭</div>
@@ -209,7 +206,6 @@ export default function AdminMateriPage() {
         </div>
       )}
 
-      {/* ===== MODAL KONFIRMASI HAPUS ===== */}
       {showDeleteModal && deleteTarget && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -219,7 +215,6 @@ export default function AdminMateriPage() {
             className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border-4 border-red-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="bg-gradient-to-br from-red-400 to-pink-500 p-6 text-center text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 text-8xl opacity-20 -mt-4 -mr-4">⚠️</div>
               <div className="relative">
@@ -233,7 +228,6 @@ export default function AdminMateriPage() {
               </div>
             </div>
 
-            {/* Body */}
             <div className="p-6">
               <div className="bg-red-50 border-4 border-red-100 rounded-2xl p-4 mb-5">
                 <p className="text-xs font-black text-red-500 mb-1">MATERI YANG AKAN DIHAPUS:</p>
@@ -259,7 +253,6 @@ export default function AdminMateriPage() {
                 Yakin mau hapus materi ini? 🗑️
               </p>
 
-              {/* Tombol */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={closeDeleteModal}
