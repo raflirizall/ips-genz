@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { getCurrentUser, logout } from '@/lib/auth'
 import { 
   LayoutDashboard, BookOpen, Target, Users, LogOut, Home, Menu, X, 
-  FolderOpen, Compass, Sparkles, Crown 
+  FolderOpen, Sparkles, Crown 
 } from 'lucide-react'
 
 export default function AdminLayout({ children }) {
@@ -55,7 +55,7 @@ export default function AdminLayout({ children }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-pink-50 to-amber-50">
         <div className="text-center">
-          <div className="text-7xl mb-4 animate-spin">🧭</div>
+          <div className="text-7xl mb-4 animate-bounce">🧭</div>
           <p className="text-violet-600 font-bold">Memeriksa akses admin...</p>
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function AdminLayout({ children }) {
       {/* ===== MOBILE HEADER ===== */}
       <div className="md:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 text-white p-3 flex items-center justify-between z-40 shadow-lg">
         <div className="flex items-center gap-2">
-          <div className="bg-white/20 backdrop-blur-sm p-1.5 rounded-xl">
+          <div className="bg-white/20 backdrop-blur-sm p-1.5 rounded-xl border border-white/30">
             <span className="text-lg">🧭</span>
           </div>
           <span className="font-black text-sm">IPS GenZ Admin</span>
